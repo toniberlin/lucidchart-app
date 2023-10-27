@@ -1,30 +1,28 @@
 import { useDrag } from 'react-dnd';
-import ModelDiagramElement from '../models/ModelDiagramElement';
-
-
+import { ElementType } from '../types/elementTypes';
+import './styles/elementStyles.css';
 interface DiagramElementProps {
-  element: ModelDiagramElement;
+  key: string;
+  element: ElementType;
 }
 
-const DiagramElement: React.FC<DiagramElementProps> = ({ element }) => {
-    console.log('Drag triggered: Element position:', element.id, element.x, element.y);
- const [ , drag] = useDrag(() => ({
-    type: 'DIAGRAM_ELEMENT',
-    item: element,
+  const DiagramElement = ({ element }: DiagramElementProps): JSX.Element => {
+      console.log('Drag triggered: Element position:', element.id, element.x, element.y);
+    const [ , drag] = useDrag(() => ({
+      type: 'DIAGRAM_ELEMENT',
+      item: element,
   }));
  
+  const elementStlye = {
+    left: element.x,
+    top: element.y,
+  };
 
   return (
     <div
-    ref={(node) => drag(node)}
-      style={{
-        width: '100px',
-        height: '100px',
-        background: 'blue',
-        position: 'absolute',
-        left: element.x,
-        top: element.y,
-      }}
+      ref={(node) => drag(node)}
+      className={`${element.type}`} // Each element can have a default style based on the type (see the CSS file)
+      style={elementStlye} // But they can be styled individually as well. This styling will overwrite the CSS
     >
       {element.type}
     </div>
