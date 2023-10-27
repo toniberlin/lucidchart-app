@@ -1,35 +1,33 @@
 import React, { useState } from 'react';
-import ModelDiagramElement from '../models/ModelDiagramElement';
 import DiagramElement from './DiagramElement';
+import { ElementType, ELEMENT_TYPES } from '../types/elementTypes';
 import {useDrop } from 'react-dnd';
+import { createRectangle, createCircle } from '../services/diagramServices';
+import './styles/diagramEditor.css';
 
-
-export interface DiagramEditorProps {
-  // Define any necessary props here
-}
-
-
-const DiagramEditor: React.FC<DiagramEditorProps> = (props) => {
+const DiagramEditor = (): JSX.Element => { 
   // State to keep track of diagram elements
-  const [elements, setElements] = useState<ModelDiagramElement[]>([]);
+  const [elements, setElements] = useState<ElementType[]>([]);
 
   // Function to handle adding new elements
-  const addElement = (element: ModelDiagramElement) => {
-    setElements((prevElements) => [...prevElements, element]);
+  const addElement = (element: ELEMENT_TYPES) => {
+    let newElement: ElementType;
+
+    switch (element) {
+      case ELEMENT_TYPES.RECTANGLE:
+        newElement = createRectangle();
+        break;
+      case ELEMENT_TYPES.CIRCLE:
+        newElement = createCircle();
+        break;
+      default:
+        break;
+    }
+    setElements((prevElements) => [...prevElements, newElement]);
   };
 
   // Implement other necessary functions and UI here
-  const handleAddRectangle = () => {
-    const newRectangle: ModelDiagramElement = {
-      id: Date.now().toString(),
-      type: 'rectangle',
-      x: 200,
-      y: 200,
-    };
-    addElement(newRectangle);
-  };
-
-  const updateElementPosition = (droppedElement: ModelDiagramElement, newX: number, newY: number) => {
+  const updateElementPosition = (droppedElement: ElementType, newX: number, newY: number) => {
     console.log('Update element position triggered:', droppedElement);
     setElements((prevElements) => {
       return prevElements.map((element) => {
@@ -46,42 +44,46 @@ const DiagramEditor: React.FC<DiagramEditorProps> = (props) => {
 
   const [, drop] = useDrop({
     accept: 'DIAGRAM_ELEMENT',
-    drop: (droppedItem: ModelDiagramElement, monitor) => {
+    drop: (droppedItem: ElementType, monitor) => {
       console.log('Drop triggered' );
       // Access the last mouse position when the drag finishes
       const lastMousePosition = monitor.getClientOffset();
+      const isOver = monitor.isOver();
       
-        const isOver = monitor.isOver();
-        if (lastMousePosition && isOver) { 
-          updateElementPosition(droppedItem, lastMousePosition.x, lastMousePosition.y);
-          console.log('Last Mouse Position:', lastMousePosition);
-        }
+      if (lastMousePosition && isOver) { 
+        updateElementPosition(droppedItem, lastMousePosition.x, lastMousePosition.y);
+        console.log('Last Mouse Position:', lastMousePosition);
+      }
       
     },
   });
 
- 
-
-  return (
-    <div 
-    ref={(node) => {
-      drop(node);
-    }}
-    
-    style={{ position: 'relative', width: '1000px', height: '1200px', border: '1px solid #ccc' }}>
-      <h2>Diagram Editor</h2>
-      <button onClick={handleAddRectangle}>Add Rectangle</button>
-      {/* Render your diagram elements and interaction UI */}
-      {elements.map((element) => {
-        return (
+  const renderElements = () => {
+    return elements.map((elem, index) => {
+      return (
         <DiagramElement 
-        key={element.id} 
-        element={element}
+          key={elem.id}
+          element={elem}
         />
       );
-      })}
+    });
+  }
+
+   // Render your diagram elements and interaction
+  return (
+    <div className='diagramWrapper'>
+      <div className='diagramContainer'
+          ref={(node) => {
+            drop(node);
+          }}
+      >
+        <h2 className='diagramTitle'>Diagram Editor</h2>
+        <button className='addElementButton' onClick={() => addElement(ELEMENT_TYPES.RECTANGLE)}>Add Rectangle</button>
+        <button className='addElementButton' onClick={() => addElement(ELEMENT_TYPES.CIRCLE)}>Add Circle</button>
+        {renderElements()}
       </div>
-    );
+    </div>
+  );
 };
 
 export default DiagramEditor;
